@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>One-to-One Payment</title>
+    <script src="https://js.stripe.com/v3/" defer></script>
+</head>
+<body>
+    <button id="payButton">Pay Now</button>
+    <script defer>
+        var stripe = Stripe('pk_test_51OKZAzSBbrWp9KWdcW5uh5RghYJC1isC3TA1rUeRpGPGzK2CCQx62PHoesZEXjrFzB3JMS8lGuh7HRi2UwQWlgYG00gKaPL3FO');
+        var elements = stripe.elements();
+        var card = elements.create('card');
+        card.mount('#card-element');
+        document.getElementById('payButton').addEventListener('click', async function () {
+            console.log("button Clicked ");
+            const { paymentIntent, error } = await createPaymentIntent();
+            if (error) {
+                console.error('Payment failed:', error);
+                return;
+            }
+            const result = await stripe.confirmCardPayment(paymentIntent.client_secret, {
+                payment_method: {
+                    card: card, 
+                },
+            });
+            if (result.error) {
+                console.error('Payment confirmation failed:', result.error);
+            } else {
+                console.log('Payment confirmed successfully:', result.paymentIntent);
+            }
+        });
+
+        async function createPaymentIntent() {
+            const response = await fetch('/api/payment/pay', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+            });
+            return response.json();
+        }
+    </script>
+</body>
+
+</html>
